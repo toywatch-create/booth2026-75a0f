@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>세계시민 나침반</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --accent:#1f5fa8; --accent-soft:#e3edf8; --bg:#eef3f9;
+  --ink:#1f2328; --ink-2:#57606a; --line:#e3e6ea; --card:#fff;
+  --ok:#1f8a4c; --bad:#c43d3d;
+  color-scheme: light;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:"Pretendard Variable",Pretendard,-apple-system,system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;word-break:keep-all;line-height:1.55}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input{font:inherit}
+.app{max-width:480px;margin:0 auto;min-height:100%;padding:20px 16px 40px;display:flex;flex-direction:column}
+.screen{display:none;flex:1;flex-direction:column;animation:fade .35s ease}
+.screen.on{display:flex}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border-radius:20px;padding:22px 20px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06)}
+.btn{display:block;width:100%;padding:16px;border-radius:14px;background:var(--accent);color:#fff;font-weight:700;font-size:17px;
+  transition:transform .1s, filter .15s}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.row{display:flex;gap:10px}
+.muted{color:var(--ink-2)}
+.small{font-size:13px}
+.chip{display:inline-block;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:700}
+
+/* intro */
+.hero{text-align:center;padding:28px 4px 8px}
+.hero .kicker{font-size:14px;font-weight:700;color:var(--accent);letter-spacing:.02em}
+.hero h1{font-size:30px;line-height:1.25;margin:10px 0 12px;font-weight:800}
+.hero p{color:var(--ink-2);font-size:16px}
+.steps{margin:22px 0;display:grid;gap:10px}
+.step{display:flex;gap:12px;align-items:center;background:#fff;border-radius:14px;padding:14px 16px}
+.step b{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:15px}
+.spacer{flex:1}
+
+/* question */
+.prog{height:8px;background:rgba(0,0,0,.07);border-radius:99px;overflow:hidden;margin:6px 0 4px}
+.prog i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+.qnum{font-size:14px;font-weight:700;color:var(--accent);margin-top:14px}
+.qtext{font-size:23px;font-weight:800;line-height:1.35;margin:8px 0 22px}
+.opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border:2px solid transparent;border-radius:16px;
+  padding:18px 16px;margin-bottom:12px;font-size:17px;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.05);transition:border-color .15s, transform .1s}
+.opt:active{transform:scale(.98)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt .em{font-size:28px;flex:none}
+.back{align-self:flex-start;color:var(--ink-2);font-size:14px;padding:6px 0}
+
+/* result */
+.badge{width:86px;height:86px;border-radius:50%;display:grid;place-items:center;font-size:40px;font-weight:800;color:#fff;margin:0 auto 10px}
+.badge.sm{width:28px;height:28px;font-size:14px;margin:0}
+.rtitle{text-align:center}
+.rtitle .nick{font-size:15px;font-weight:700}
+.rtitle h2{font-size:30px;font-weight:800;margin:2px 0 6px}
+.rtitle p{color:var(--ink-2)}
+.traits{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 4px}
+.compass-wrap{margin:18px 0}
+.compass-wrap svg{width:100%;height:auto;display:block}
+.sec-title{font-size:15px;font-weight:800;margin-bottom:8px}
+
+/* tiebreak */
+.tb{display:grid;gap:12px;margin-top:8px}
+.tb .opt{flex-direction:column;align-items:flex-start;gap:6px}
+.tb .opt .head{display:flex;gap:10px;align-items:center}
+
+/* learn */
+.lcard{flex:1;display:flex;flex-direction:column}
+.lcard .pg{font-size:13px;font-weight:700;color:var(--accent)}
+.lcard h3{font-size:24px;line-height:1.3;margin:6px 0 14px;font-weight:800}
+.lcard .body{font-size:17px;line-height:1.7}
+.lcard .body p{margin-bottom:12px}
+.lcard .body b{background:linear-gradient(transparent 58%, var(--accent-soft) 58%)}
+.fact{margin-top:6px;padding:14px 16px;border-radius:14px;background:var(--accent-soft);font-weight:700;font-size:16px}
+.src{margin-top:12px;font-size:12px;color:var(--ink-2)}
+.dots{display:flex;gap:6px;justify-content:center;margin:16px 0}
+.dots i{width:8px;height:8px;border-radius:50%;background:rgba(0,0,0,.15)}
+.dots i.on{background:var(--accent);width:22px;border-radius:99px}
+
+/* quiz */
+.qopt{display:block;width:100%;text-align:left;background:#fff;border:2px solid var(--line);border-radius:14px;padding:15px 16px;margin-bottom:10px;font-size:17px;font-weight:600}
+.qopt.right{border-color:var(--ok);background:#e9f7ef}
+.qopt.wrong{border-color:var(--bad);background:#fbecec;animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.fb{min-height:52px;font-weight:700;font-size:15px;margin:4px 0 12px}
+.fb.ok{color:var(--ok)} .fb.no{color:var(--bad)}
+
+/* done */
+.stamp{width:150px;height:150px;border-radius:50%;margin:10px auto 14px;border:6px double var(--accent);color:var(--accent);display:grid;place-items:center;
+  font-weight:900;font-size:22px;transform:rotate(-12deg);animation:stamp .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes stamp{from{transform:scale(2.2) rotate(-12deg);opacity:0}to{transform:scale(1) rotate(-12deg);opacity:1}}
+.namein{width:100%;padding:16px;font-size:18px;border:2px solid var(--line);border-radius:14px;margin:10px 0;text-align:center;outline:none}
+.namein:focus{border-color:var(--accent)}
+.toast{margin-top:10px;text-align:center;font-weight:700;min-height:24px}
+
+/* board */
+body.board{background:#0f1720;color:#e8edf2;overflow:hidden}
+body.board .app{display:none}
+.bwrap{display:none}
+body.board .bwrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;height:100vh;padding:24px}
+.bmain{display:flex;align-items:center;justify-content:center;min-height:0}
+.bmain svg{height:100%;max-height:calc(100vh - 48px);width:auto;max-width:100%}
+.bside{display:flex;flex-direction:column;gap:16px;min-height:0}
+.bside h1{font-size:28px;line-height:1.25;font-weight:800}
+.bside .sub{color:#9fb0c0}
+.bcount{font-size:15px;color:#9fb0c0}
+.bcount b{font-size:40px;color:#fff;display:block;line-height:1.1}
+.qrbox{background:#fff;border-radius:14px;padding:12px;display:flex;gap:12px;align-items:center;color:#1f2328}
+.qrbox #qr{flex:none}
+.qrbox #qr img,.qrbox #qr canvas{width:110px!important;height:110px!important}
+.qrbox p{font-weight:800;font-size:16px;line-height:1.35}
+.legend{display:grid;gap:6px;overflow:auto;min-height:0}
+.lg{display:flex;align-items:center;gap:10px;font-size:15px}
+.lg .bar{flex:1;height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.lg .bar i{display:block;height:100%}
+.lg .n{width:28px;text-align:right;font-weight:800}
+.bmode{font-size:12px;color:#f0b35a}
+.gear{position:fixed;right:14px;bottom:12px;color:#55667a;font-size:13px}
+.adm{position:fixed;right:14px;bottom:40px;background:#1c2733;border:1px solid #2c3a49;border-radius:12px;padding:14px;display:none;width:260px;font-size:14px}
+.adm.on{display:block}
+.adm input{width:100%;padding:8px;border-radius:8px;border:1px solid #3a4a5c;background:#0f1720;color:#fff;margin:6px 0}
+.adm button{padding:8px 10px;border-radius:8px;background:#2c3a49;margin:4px 4px 0 0}
+.adm button.danger{background:#7a2b2b}
+body.deleting .pt{cursor:pointer}
+body.deleting .pt:hover circle{stroke:#ff6b6b;stroke-width:.08}
+@keyframes pop{0%{transform:scale(0)}60%{transform:scale(1.6)}100%{transform:scale(1)}}
+.pt.new circle{transform-box:fill-box;transform-origin:center;animation:pop .6s ease}
+@media (max-width:900px){body.board{overflow:auto} body.board .bwrap{grid-template-columns:1fr;height:auto}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- intro -->
+  <section class="screen on" id="s-intro">
+    <div class="hero">
+      <div class="kicker" id="i-kicker"></div>
+      <h1 id="i-title"></h1>
+      <p id="i-sub"></p>
+    </div>
+    <div class="steps">
+      <div class="step"><b>1</b><div><strong>10가지 질문</strong>에 답하고 나의 유형 찾기</div></div>
+      <div class="step"><b>2</b><div>내 유형과 연결된 <strong>이야기 카드</strong> 읽기</div></div>
+      <div class="step"><b>3</b><div><strong>미션 퀴즈 3문제</strong> 풀고 도장 받기</div></div>
+      <div class="step"><b>4</b><div>좌표 보드에 <strong>내 이름</strong> 올리기</div></div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="startBtn">시작하기</button>
+  </section>
+
+  <!-- question -->
+  <section class="screen" id="s-q">
+    <button class="back" id="qBack">← 이전</button>
+    <div class="prog"><i id="qProg"></i></div>
+    <div class="qnum" id="qNum"></div>
+    <div class="qtext" id="qText"></div>
+    <div id="qOpts"></div>
+  </section>
+
+  <!-- tiebreak -->
+  <section class="screen" id="s-tb">
+    <div class="qnum">마지막 질문</div>
+    <div class="qtext">두 유형의 경계에 딱 서 있어요!<br>둘 중 더 궁금한 이야기는?</div>
+    <div class="tb" id="tbOpts"></div>
+  </section>
+
+  <!-- result -->
+  <section class="screen" id="s-res">
+    <div class="card">
+      <div class="rtitle">
+        <div class="badge" id="rBadge"></div>
+        <div class="nick" id="rNick"></div>
+        <h2 id="rName"></h2>
+        <p id="rTag"></p>
+      </div>
+      <div class="traits" id="rTraits"></div>
+      <div class="compass-wrap" id="rCompass"></div>
+      <p class="small muted" style="text-align:center" id="rAxis"></p>
+    </div>
+    <div style="height:16px"></div>
+    <button class="btn" id="toLearn">이야기 카드 보러 가기 →</button>
+  </section>
+
+  <!-- learn -->
+  <section class="screen" id="s-learn">
+    <div class="card lcard">
+      <div class="pg" id="lPg"></div>
+      <h3 id="lH"></h3>
+      <div class="body" id="lBody"></div>
+      <div class="spacer"></div>
+      <div class="src" id="lSrc"></div>
+    </div>
+    <div class="dots" id="lDots"></div>
+    <div class="row">
+      <button class="btn ghost" id="lPrev" style="flex:1">이전</button>
+      <button class="btn" id="lNext" style="flex:2">다음</button>
+    </div>
+  </section>
+
+  <!-- quiz -->
+  <section class="screen" id="s-quiz">
+    <div class="prog"><i id="zProg"></i></div>
+    <div class="qnum" id="zNum"></div>
+    <div class="qtext" id="zText"></div>
+    <div id="zOpts"></div>
+    <div class="fb" id="zFb"></div>
+    <div class="spacer"></div>
+    <button class="btn ghost" id="zPeek">카드 다시 보기</button>
+  </section>
+
+  <!-- done -->
+  <section class="screen" id="s-done">
+    <div class="card" style="text-align:center">
+      <div class="stamp" id="dStamp">미션<br>성공!</div>
+      <h2 style="font-size:24px;font-weight:800" id="dTitle"></h2>
+      <p class="muted" style="margin:6px 0 4px">부스 선생님께 이 화면을 보여주고<br>상품을 받으세요!</p>
+      <p class="small muted" id="dTime"></p>
+    </div>
+    <div style="height:16px"></div>
+    <div class="card">
+      <div class="sec-title">좌표 보드에 이름 올리기</div>
+      <p class="small muted">별명도 괜찮아요. (최대 8글자)</p>
+      <input class="namein" id="dName" maxlength="8" placeholder="이름 또는 별명" autocomplete="off">
+      <button class="btn" id="dSend">보드에 올리기</button>
+      <div class="toast" id="dToast"></div>
+    </div>
+    <div style="height:12px"></div>
+    <button class="btn ghost" id="dAgain">처음부터 다시 하기</button>
+  </section>
+</div>
+
+<!-- board -->
+<div class="bwrap">
+  <div class="bmain" id="bMain"></div>
+  <div class="bside">
+    <div>
+      <h1 id="bTitle"></h1>
+      <div class="sub" id="bSub"></div>
+    </div>
+    <div class="qrbox"><div id="qr"></div><p>휴대폰으로<br>QR을 찍고<br>참여하세요!</p></div>
+    <div class="bcount"><b id="bTotal">0</b>명 참여</div>
+    <div class="legend" id="bLegend"></div>
+    <div class="bmode" id="bMode"></div>
+  </div>
+  <button class="gear" id="gear">관리</button>
+  <div class="adm" id="adm">
+    <div id="admLock">
+      관리자 PIN
+      <input type="password" id="admPin" inputmode="numeric">
+      <button id="admGo">확인</button>
+    </div>
+    <div id="admTools" style="display:none">
+      <div>점을 클릭하면 삭제됩니다.</div>
+      <button id="admReset" class="danger">전체 초기화</button>
+      <button id="admClose">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   설정 (배포 전에 여기만 바꾸면 됩니다)
+   FIREBASE_URL : Firebase Realtime Database 주소
+                  예) "https://my-booth-default-rtdb.asia-southeast1.firebasedatabase.app"
+                  비워두면 이 기기 안에만 저장됩니다(보드도 같은 기기·브라우저에서만 보임).
+   ADMIN_PIN    : 보드 화면의 '관리' 버튼 PIN (점 삭제, 전체 초기화)
+   ===================================================================== */
+const FIREBASE_URL = "";
+const ADMIN_PIN = "0000";
+
+const DATA = {"room": "booth-global", "title": "세계시민 나침반", "kicker": "민주시민·세계시민 부스 2", "titleHTML": "나는 어떤<br>세계시민일까?", "subtitle": "10가지 질문에 답하면 나의 세계시민 나침반이 가리키는 지구의 문제를 알려 줘요. 모든 유형이 멋진 세계시민이에요!", "boardTitle": "우리들의 세계시민 나침반", "boardSub": "어떤 방식으로 세상을 바꾸고 싶나요?", "accent": "#1f5fa8", "accentSoft": "#e3edf8", "bg": "#eef3f9", "axes": {"x": ["나의 선택", "함께 행동"], "y": ["머리가 먼저", "마음이 먼저"]}, "questions": [{"axis": "x", "q": "학교 앞에 쓰레기가 너무 많아졌다!", "a": {"e": "🚮", "t": "나부터 쓰레기를 줍고 안 버린다", "v": -1}, "b": {"e": "📣", "t": "친구들과 깨끗한 학교 캠페인을 연다", "v": 1}}, {"axis": "y", "q": "뉴스에서 다른 나라의 재난 소식을 봤다.", "a": {"e": "🧐", "t": "왜 이런 일이 생겼는지 원인이 궁금하다", "v": -1}, "b": {"e": "💗", "t": "마음이 아파서 무엇이든 돕고 싶다", "v": 1}}, {"axis": "x", "q": "학교에 바꾸고 싶은 규칙이 생겼다!", "a": {"e": "✍️", "t": "학생회에 건의하고 친구들 서명을 모은다", "v": 1}, "b": {"e": "🙋", "t": "불편해도 내가 먼저 좋은 습관을 보여 준다", "v": -1}}, {"axis": "y", "q": "다큐멘터리를 보고 나면 기억에 남는 건?", "a": {"e": "🥲", "t": "주인공의 이야기와 표정", "v": 1}, "b": {"e": "📊", "t": "놀라운 숫자와 지도, 그래프", "v": -1}}, {"axis": "x", "q": "환경을 생각하는 물건을 알게 됐다!", "a": {"e": "🛒", "t": "내가 살 때부터 꼼꼼히 골라 산다", "v": -1}, "b": {"e": "📢", "t": "친구·가족에게 알려 함께 바꾼다", "v": 1}}, {"axis": "y", "q": "친구가 고민을 털어놓는다면?", "a": {"e": "🧩", "t": "어떻게 해결할지 방법을 같이 찾는다", "v": -1}, "b": {"e": "🫂", "t": "먼저 공감하며 끝까지 들어 준다", "v": 1}}, {"axis": "x", "q": "어려운 이웃을 돕는 방법을 고른다면?", "a": {"e": "🎁", "t": "내 용돈을 아껴 조용히 기부한다", "v": -1}, "b": {"e": "🎪", "t": "반 친구들과 모금 행사를 연다", "v": 1}}, {"axis": "y", "q": "캠페인 포스터를 만든다면?", "a": {"e": "📈", "t": "놀라운 통계와 그래프로 설득한다", "v": -1}, "b": {"e": "🖼️", "t": "마음을 울리는 사진과 한 문장으로", "v": 1}}, {"axis": "x", "q": "우리 동네 공원에 놀이터가 필요하다면?", "a": {"e": "🗳️", "t": "주민들과 함께 구청에 의견을 낸다", "v": 1}, "b": {"e": "🧸", "t": "있는 공간을 내가 더 아끼며 쓴다", "v": -1}}, {"axis": "y", "q": "놀라운 소식을 새로 알게 되면 먼저 드는 생각은?", "a": {"e": "🔎", "t": "진짜일까? 출처가 어디지?", "v": -1}, "b": {"e": "💭", "t": "그 사람들은 지금 어떤 기분일까?", "v": 1}}], "types": {"NNE": {"name": "꿈을 잇는 친구", "icon": "📚", "color": "#e08a00", "nick": "마음 + 함께형", "tagline": "친구의 꿈을 내 일처럼 응원하는 따뜻한 연결고리!", "teaser": "학교에 가고 싶어도 갈 수 없는 친구들의 이야기", "traits": ["공감", "응원", "배움"], "learn": [{"h": "학교에 가지 못하는 2억 7,200만 명", "body": ["지금 전 세계에서 <b>약 2억 7,200만 명<\/b>의 어린이·청소년이 학교에 다니지 못하고 있어요.", "우리나라 전체 인구의 <b>5배<\/b>가 넘는 숫자예요."], "src": "유네스코 세계교육현황보고서(2025)"}, {"h": "왜 학교에 가지 못할까?", "body": ["<b>전쟁<\/b> 때문에 학교가 무너지거나, 집이 <b>가난<\/b>해서 일을 해야 하거나, 학교가 너무 멀기도 해요.", "어떤 곳에서는 <b>여자아이라는 이유만으로<\/b> 공부를 그만두기도 해요."]}, {"h": "말랄라의 목소리", "body": ["파키스탄의 <b>말랄라 유사프자이<\/b>는 여자아이도 학교에 갈 권리가 있다고 외치다 총격을 당했어요.", "그래도 포기하지 않고 목소리를 냈고, 2014년 <b>최연소 노벨평화상<\/b> 수상자가 되었어요."]}, {"h": "세계의 약속과 나의 실천", "body": ["유엔은 <b>지속가능발전목표(SDGs) 4번 '양질의 교육'<\/b>으로 모든 아이가 배울 수 있는 세상을 약속했어요.", "다른 나라 친구들의 이야기에 관심 갖기, 교육 기부 캠페인에 <b>친구들과 함께<\/b> 참여하기부터 시작해요."], "fact": "SDGs 4 · 양질의 교육"}], "quiz": [{"q": "전 세계에서 학교에 다니지 못하는 어린이·청소년은 약 몇 명일까요?", "o": ["약 2억 7,200만 명", "약 2,700명", "약 27억 명"], "a": 0, "hint": "첫 번째 카드 제목에 답이 있어요."}, {"q": "여자아이 교육을 외치고 최연소 노벨평화상을 받은 사람은?", "o": ["말랄라 유사프자이", "그레타 툰베리", "마더 테레사"], "a": 0, "hint": "세 번째 카드를 다시 볼까요?"}, {"q": "SDGs에서 '양질의 교육'은 몇 번 목표일까요?", "o": ["4번", "13번", "17번"], "a": 0, "hint": "마지막 카드에 답이 있어요."}]}, "ENE": {"name": "연대하는 이웃", "icon": "🤝", "color": "#d2453f", "nick": "함께 + 마음형", "tagline": "누구도 혼자 두지 않는, 손을 먼저 내미는 이웃!", "teaser": "집을 떠나 새로운 곳에서 살아가야 하는 사람들의 이야기", "traits": ["연대", "환대", "용기"], "learn": [{"h": "집을 떠나야 했던 1억 1,780만 명", "body": ["2025년 말, 전쟁과 박해 때문에 집을 떠나야 했던 사람은 <b>약 1억 1,780만 명<\/b>이에요.", "나라 밖으로 피한 <b>난민<\/b> 10명 중 약 <b>4명이 어린이<\/b>예요."], "src": "유엔난민기구(UNHCR) 글로벌 동향 보고서(2026)"}, {"h": "난민은 어디에서 지낼까?", "body": ["많은 난민이 부자 나라가 아니라 <b>가까운 이웃 나라<\/b>, 그중에서도 형편이 넉넉하지 않은 나라에서 지내요.", "수단처럼 전쟁이 길어진 나라에서는 <b>나라 안에서만 900만 명 넘게<\/b> 집을 잃었어요."]}, {"h": "한 아이의 하루를 상상해 봐요", "body": ["어느 날 갑자기 가방 하나만 들고 집을 떠나야 한다면, 무엇을 챙길까요?", "말도 통하지 않는 곳에서 <b>새 학교, 새 친구<\/b>를 만나야 하는 아이의 마음은 어떨까요?"]}, {"h": "환영하는 이웃이 되는 법", "body": ["<b>6월 20일은 세계 난민의 날<\/b>이에요.", "다른 나라에서 온 친구에게 <b>차별하는 말 하지 않기<\/b>, 먼저 인사하기, 함께 응원하는 캠페인에 참여하기! 그게 연대의 시작이에요."], "fact": "SDGs 10 · 불평등 감소 / 16 · 평화"}], "quiz": [{"q": "2025년 말, 전쟁·박해로 집을 떠나야 했던 사람은 약 몇 명일까요?", "o": ["약 1억 1,780만 명", "약 1만 명", "약 100억 명"], "a": 0, "hint": "첫 번째 카드 제목에 답이 있어요."}, {"q": "난민 10명 중 어린이는 약 몇 명일까요?", "o": ["약 4명", "약 1명도 안 된다", "10명 모두"], "a": 0, "hint": "첫 번째 카드를 다시 볼까요?"}, {"q": "세계 난민의 날은 언제일까요?", "o": ["6월 20일", "3월 22일", "12월 25일"], "a": 0, "hint": "마지막 카드에 답이 있어요."}]}, "ESE": {"name": "지구 설계자", "icon": "🌏", "color": "#138a72", "nick": "함께 + 머리형", "tagline": "모두가 함께 바꿀 수 있는 큰 그림을 그리는 설계자!", "teaser": "바다에 잠겨 가는 섬나라를 지키려는 사람들의 이야기", "traits": ["큰 그림", "협력", "해결사"], "learn": [{"h": "바다에 잠겨 가는 나라, 투발루", "body": ["남태평양의 섬나라 <b>투발루<\/b>는 땅 대부분이 바다보다 겨우 몇 미터 높아요.", "기후위기로 <b>바닷물 높이(해수면)가 올라가면서<\/b> 집과 밭이 바닷물에 잠길 위험에 처했어요."]}, {"h": "국민 3명 중 1명이 이사를 신청했어요", "body": ["오스트레일리아는 투발루 사람들에게 <b>매년 280명<\/b>씩 이주할 수 있는 '기후 비자'를 주기로 했어요.", "2025년 첫 신청에 <b>국민 3분의 1이 넘는 사람들<\/b>이 지원했어요."], "src": "AP·로이터 보도(2025)"}, {"h": "왜 '함께'여야 할까?", "body": ["투발루가 내뿜는 온실가스는 아주 적지만, 피해는 가장 먼저 받고 있어요.", "그래서 세계 여러 나라는 <b>파리협정<\/b>으로 지구 온도 상승을 막기 위해 함께 약속했어요. 기후위기는 <b>한 나라만으로는 풀 수 없는<\/b> 문제예요."]}, {"h": "지구를 함께 설계하는 법", "body": ["교실 에너지 절약 규칙을 <b>학급 회의에서 제안<\/b>하기, 학교에 기후 행동을 건의하기!", "개인의 실천에 <b>여럿의 목소리<\/b>가 더해지면 제도가 바뀌어요."], "fact": "SDGs 13 · 기후 행동"}], "quiz": [{"q": "투발루를 위협하는 가장 큰 문제는?", "o": ["해수면 상승", "사막화", "지진"], "a": 0, "hint": "첫 번째 카드를 다시 볼까요?"}, {"q": "오스트레일리아가 투발루 사람들에게 매년 주기로 한 기후 비자는 몇 명분일까요?", "o": ["280명", "28,000명", "2명"], "a": 0, "hint": "두 번째 카드에 숫자가 있어요."}, {"q": "SDGs에서 '기후 행동'은 몇 번 목표일까요?", "o": ["13번", "4번", "6번"], "a": 0, "hint": "마지막 카드에 답이 있어요."}]}, "SSE": {"name": "식량 해결사", "icon": "🍚", "color": "#6f9419", "nick": "머리 + 함께형", "tagline": "문제의 원인을 찾아 모두가 함께 해결하는 똑똑한 해결사!", "teaser": "음식은 남는데 굶는 사람도 있는 이상한 세상의 이야기", "traits": ["분석력", "실행력", "나눔"], "learn": [{"h": "굶주리는 6억 4,500만 명", "body": ["2025년 한 해 동안 전 세계에서 <b>약 6억 4,500만 명<\/b>이 굶주림을 겪었어요.", "지구 사람 <b>약 13명 중 1명<\/b>꼴이에요."], "src": "유엔 식량농업기구(FAO) 등, 세계 식량안보 보고서(2026)"}, {"h": "그런데 음식은 버려지고 있어요", "body": ["가게와 식탁에 오른 음식의 <b>약 5분의 1<\/b>이 먹히지 못하고 버려져요. 한 해 <b>10억 톤<\/b>이 넘어요.", "버려지는 음식의 <b>절반 이상은 집(가정)<\/b>에서 나와요."], "src": "유엔환경계획(UNEP) 음식물 쓰레기 지수 보고서(2024)"}, {"h": "문제는 '양'이 아니라 '나눔'", "body": ["지구에 음식이 모자란 게 아니라, <b>필요한 곳에 잘 나눠지지 않는 것<\/b>이 문제예요.", "전쟁, 기후위기, 가난이 겹치면 음식이 있어도 사지 못하거나 받지 못해요."]}, {"h": "식량 해결사의 실천", "body": ["급식은 <b>먹을 만큼만<\/b>! 우리 반 <b>잔반 줄이기 프로젝트<\/b>를 친구들과 함께 해 봐요.", "남는 음식을 필요한 이웃과 나누는 <b>푸드뱅크<\/b>도 있어요."], "fact": "SDGs 2 · 기아 종식 / 12 · 책임 있는 소비"}], "quiz": [{"q": "2025년 전 세계에서 굶주림을 겪은 사람은 약 몇 명일까요?", "o": ["약 6억 4,500만 명", "약 6,450명", "약 64억 명"], "a": 0, "hint": "첫 번째 카드 제목에 답이 있어요."}, {"q": "가게와 식탁에 오른 음식 중 버려지는 양은 약 얼마일까요?", "o": ["약 5분의 1", "약 100분의 1", "거의 전부"], "a": 0, "hint": "두 번째 카드를 다시 볼까요?"}, {"q": "버려지는 음식이 가장 많이 나오는 곳은?", "o": ["가정", "우주 정거장", "농장 한 곳"], "a": 0, "hint": "두 번째 카드에 답이 있어요."}]}, "SSW": {"name": "물발자국 탐정", "icon": "💧", "color": "#2a74d0", "nick": "머리 + 나의 선택형", "tagline": "보이지 않는 것까지 꼼꼼히 따져 보는 생활 속 탐정!", "teaser": "물건 속에 숨어 있는 보이지 않는 물의 이야기", "traits": ["관찰력", "꼼꼼함", "탐구심"], "learn": [{"h": "4명 중 1명은 안전한 물을 마시지 못해요", "body": ["전 세계 <b>약 21억 명<\/b>, 지구 사람 <b>4명 중 1명<\/b>이 안전하게 관리된 식수를 마시지 못해요.", "어떤 아이들은 물을 길으러 매일 먼 길을 걸어요. 그 시간에 <b>학교에 가지 못하기도<\/b> 해요."], "src": "세계보건기구(WHO)·유니세프(2025)"}, {"h": "물발자국이 뭘까?", "body": ["물건을 만들고 키우는 데 들어간 물의 양을 <b>'물발자국'<\/b>이라고 해요.", "예를 들어 <b>청바지 한 벌<\/b>을 만드는 데에는 목화를 키우고 옷감을 물들이는 과정까지 <b>약 7,500리터<\/b>의 물이 쓰여요."], "src": "유엔(UN)"}, {"h": "보이지 않는 물도 아껴요", "body": ["수도꼭지를 잠그는 것만이 물을 아끼는 게 아니에요.", "물건을 <b>오래 쓰고, 필요한 만큼만 사는 것<\/b>도 지구의 물을 아끼는 방법이에요."]}, {"h": "탐정의 실천", "body": ["<b>3월 22일은 세계 물의 날<\/b>이에요.", "양치할 때 컵 쓰기, 물건 살 때 <b>'이걸 만드는 데 물이 얼마나 들었을까?'<\/b> 한 번 더 생각해 보기!"], "fact": "SDGs 6 · 깨끗한 물과 위생"}], "quiz": [{"q": "안전한 식수를 마시지 못하는 사람은 지구 사람 중 약 몇 명 중 1명일까요?", "o": ["4명 중 1명", "100명 중 1명", "1,000명 중 1명"], "a": 0, "hint": "첫 번째 카드 제목에 답이 있어요."}, {"q": "'물발자국'의 뜻으로 알맞은 것은?", "o": ["물건을 만드는 데 쓰인 물의 양", "비 온 뒤 생긴 발자국", "수영장에서 쓴 물"], "a": 0, "hint": "두 번째 카드를 다시 볼까요?"}, {"q": "세계 물의 날은 언제일까요?", "o": ["3월 22일", "6월 20일", "10월 9일"], "a": 0, "hint": "마지막 카드에 답이 있어요."}]}, "WSW": {"name": "똑똑한 판별사", "icon": "🔍", "color": "#6a4fc4", "nick": "나의 선택 + 머리형", "tagline": "그럴듯한 말에도 '진짜일까?' 한 번 더 확인하는 판별사!", "teaser": "가짜 뉴스와 가짜 사진을 가려내는 이야기", "traits": ["비판적 사고", "침착함", "정확함"], "learn": [{"h": "가짜도 진짜처럼 보이는 시대", "body": ["요즘은 인공지능(AI)으로 <b>진짜 같은 가짜 사진·영상(딥페이크)<\/b>을 누구나 쉽게 만들 수 있어요.", "가짜 뉴스는 진짜 뉴스보다 <b>더 자극적<\/b>이라 더 빨리 퍼지기도 해요."]}, {"h": "가짜 뉴스가 세상에 미치는 영향", "body": ["재난이 일어났을 때 퍼진 가짜 소식은 <b>구조를 방해<\/b>하고 사람들을 불안하게 해요.", "특정 나라나 사람들에 대한 가짜 뉴스는 <b>차별과 혐오<\/b>를 키우기도 해요."]}, {"h": "판별사의 3단계 체크", "body": ["① <b>출처<\/b>: 누가 만들었지? 믿을 만한 곳인가?", "② <b>날짜<\/b>: 옛날 사진을 지금 일처럼 올린 건 아닐까?", "③ <b>교차 확인<\/b>: 다른 언론에서도 같은 내용을 보도했을까?"]}, {"h": "공유하기 전에 3초 멈춤!", "body": ["화가 나거나 너무 놀라운 소식일수록 <b>공유 버튼을 누르기 전에 멈춰요.<\/b>", "내가 퍼뜨리지 않으면 가짜 뉴스는 거기서 멈춰요. <b>나의 선택<\/b>이 세상을 지켜요!"], "fact": "SDGs 16 · 평화, 정의, 정보 접근"}], "quiz": [{"q": "AI로 만든 진짜 같은 가짜 사진·영상을 무엇이라고 할까요?", "o": ["딥페이크", "브이로그", "이모티콘"], "a": 0, "hint": "첫 번째 카드를 다시 볼까요?"}, {"q": "판별사의 3단계 체크에 들어가지 않는 것은?", "o": ["좋아요 수가 많으면 믿기", "출처 확인", "다른 언론과 교차 확인"], "a": 0, "hint": "세 번째 카드를 다시 볼까요?"}, {"q": "놀라운 소식을 봤을 때 가장 먼저 할 행동은?", "o": ["공유하기 전에 멈추고 확인하기", "바로 단체방에 공유하기", "댓글로 화내기"], "a": 0, "hint": "마지막 카드 제목이 힌트!"}]}, "WNW": {"name": "옷장 속 지구지킴이", "icon": "👕", "color": "#c2478f", "nick": "나의 선택 + 마음형", "tagline": "작은 습관 하나로 지구를 지키는 생활 속 실천가!", "teaser": "버려진 옷들이 산처럼 쌓인 사막의 이야기", "traits": ["실천력", "알뜰함", "따뜻함"], "learn": [{"h": "매초 트럭 한 대 분량의 옷이 버려져요", "body": ["유행에 맞춰 싸게 빨리 만들고 빨리 버리는 옷을 <b>'패스트패션'<\/b>이라고 해요.", "전 세계에서는 <b>1초마다 쓰레기 트럭 한 대 분량<\/b>의 옷이 땅에 묻히거나 태워지고 있어요."], "src": "엘런 맥아더 재단"}, {"h": "사막 위에 쌓인 옷 산", "body": ["남아메리카 칠레의 <b>아타카마 사막<\/b>에는 팔리지 않은 헌 옷이 산처럼 쌓여 있어요.", "아프리카 가나의 바닷가에도 헌 옷 더미가 밀려와요. 우리가 버린 옷이 <b>지구 반대편<\/b>으로 가기도 해요."]}, {"h": "옷에서 나오는 플라스틱", "body": ["값싼 옷의 상당수는 <b>폴리에스터 같은 합성섬유<\/b>, 즉 플라스틱으로 만들어요.", "이런 옷을 빨 때마다 아주 작은 <b>미세플라스틱<\/b>이 떨어져 나와 바다로 흘러가요."]}, {"h": "지구지킴이의 옷장 습관", "body": ["<b>오래 입기, 물려 입기, 고쳐 입기, 바꿔 입기!<\/b>", "새 옷을 사기 전에 <b>'정말 필요할까?'<\/b> 한 번 더 생각하는 것만으로도 지구를 지킬 수 있어요."], "fact": "SDGs 12 · 책임 있는 소비와 생산"}], "quiz": [{"q": "전 세계에서 버려지는 옷은 어느 정도일까요?", "o": ["1초마다 쓰레기 트럭 한 대 분량", "1년에 옷 한 벌", "버려지는 옷은 없다"], "a": 0, "hint": "첫 번째 카드 제목에 답이 있어요."}, {"q": "헌 옷이 산처럼 쌓인 칠레의 사막 이름은?", "o": ["아타카마 사막", "사하라 사막", "고비 사막"], "a": 0, "hint": "두 번째 카드를 다시 볼까요?"}, {"q": "합성섬유 옷을 빨 때 떨어져 나오는 것은?", "o": ["미세플라스틱", "금가루", "비타민"], "a": 0, "hint": "세 번째 카드에 답이 있어요."}]}, "NNW": {"name": "따뜻한 소비자", "icon": "🍫", "color": "#8b5a2b", "nick": "마음 + 나의 선택형", "tagline": "내가 고르는 물건 하나에도 다른 사람의 행복을 생각해요!", "teaser": "달콤한 초콜릿 뒤에 숨은 아이들의 이야기", "traits": ["공감", "책임감", "현명한 선택"], "learn": [{"h": "일하는 아이들 1억 3,800만 명", "body": ["전 세계에서 <b>약 1억 3,800만 명<\/b>의 아이들이 학교 대신 일터에서 일하고 있어요(아동노동).", "그중 <b>약 5,400만 명<\/b>은 건강과 안전을 위협하는 위험한 일을 해요."], "src": "국제노동기구(ILO)·유니세프(2025)"}, {"h": "달콤한 초콜릿 뒤의 이야기", "body": ["초콜릿의 원료인 <b>카카오<\/b>는 서아프리카의 <b>코트디부아르와 가나<\/b>에서 많이 생산돼요.", "이곳 카카오 농장에서는 날카로운 칼로 열매를 따고 무거운 짐을 나르는 <b>아이들의 노동<\/b>이 문제가 되어 왔어요."]}, {"h": "공정무역이란?", "body": ["<b>공정무역<\/b>은 생산자에게 정당한 값을 주고, 아동노동 없이 만든 물건을 사고파는 약속이에요.", "공정무역 <b>인증 마크<\/b>가 붙은 초콜릿·커피·바나나 등이 있어요."]}, {"h": "따뜻한 소비자의 선택", "body": ["물건을 살 때 <b>'누가, 어떻게 만들었을까?'<\/b> 떠올려 보기!", "공정무역 마크를 찾아보고, 학교 매점에 공정무역 간식을 제안해 보는 것도 좋아요."], "fact": "SDGs 8 · 양질의 일자리(아동노동 근절)"}], "quiz": [{"q": "전 세계에서 아동노동을 하는 아이들은 약 몇 명일까요?", "o": ["약 1억 3,800만 명", "약 1,380명", "약 13억 8천만 명"], "a": 0, "hint": "첫 번째 카드 제목에 답이 있어요."}, {"q": "카카오를 많이 생산하는 서아프리카 나라는?", "o": ["코트디부아르와 가나", "노르웨이와 핀란드", "캐나다와 미국"], "a": 0, "hint": "두 번째 카드를 다시 볼까요?"}, {"q": "'공정무역'의 뜻으로 알맞은 것은?", "o": ["생산자에게 정당한 값을 주고 아동노동 없이 만든 물건을 거래하는 것", "무조건 가장 싼 물건만 사는 것", "물건을 공짜로 나눠 주는 것"], "a": 0, "hint": "세 번째 카드를 다시 볼까요?"}]}}};
+</script>
+<script>
+(() => {
+const D = DATA;
+const ROOM = D.room;
+const SECTORS = ["ENE","NNE","NNW","WNW","WSW","SSW","SSE","ESE"];
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- geometry ---------- */
+function sectorOf(x, y){
+  const a = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  return SECTORS[Math.min(7, Math.floor(a / 45))];
+}
+function tieCandidates(x, y){
+  if (x > 0 && y > 0) return ["NNE","ENE"];
+  if (x < 0 && y > 0) return ["NNW","WNW"];
+  if (x < 0 && y < 0) return ["SSW","WSW"];
+  return ["SSE","ESE"];
+}
+function placePoint(x, y, type){
+  for (let i = 0; i < 80; i++){
+    const px = x + (Math.random() * 1.6 - 0.8), py = y + (Math.random() * 1.6 - 0.8);
+    if (Math.abs(px) < 5.6 && Math.abs(py) < 5.6 && sectorOf(px, py) === type) return [round(px), round(py)];
+  }
+  const k = SECTORS.indexOf(type), a = (k * 45 + 22.5) * Math.PI / 180, r = Math.max(1, Math.hypot(x, y));
+  return [round(Math.cos(a) * r), round(Math.sin(a) * r)];
+}
+const round = v => Math.round(v * 100) / 100;
+
+/* ---------- compass SVG ---------- */
+function compassSVG(opts){
+  const R = 6, dark = !!opts.dark;
+  const P = i => { const k = ((i % 8) + 8) % 8; return [[R,0],[R,R],[0,R],[-R,R],[-R,0],[-R,-R],[0,-R],[R,-R]][k]; };
+  let wedges = "", labels = "";
+  SECTORS.forEach((s, k) => {
+    const t = D.types[s], a = P(k), b = P(k + 1);
+    const hi = opts.highlight === s;
+    wedges += `<polygon points="0,0 ${a[0]},${-a[1]} ${b[0]},${-b[1]}" fill="${t.color}" fill-opacity="${hi ? .32 : (dark ? .13 : .1)}" />`;
+    const ang = (k * 45 + 22.5) * Math.PI / 180, lr = opts.labelR || 4.35;
+    const lx = Math.cos(ang) * lr, ly = -Math.sin(ang) * lr;
+    const fs = opts.labelSize || .42;
+    labels += `<g opacity="${opts.highlight && !hi ? .45 : 1}">
+      <circle cx="${lx}" cy="${ly - fs*0.9}" r="${fs*0.85}" fill="${t.color}"/>
+      <text x="${lx}" y="${ly - fs*0.9}" text-anchor="middle" dominant-baseline="central" font-size="${fs}" font-weight="800" fill="#fff">${esc(t.icon)}</text>
+      <text x="${lx}" y="${ly + fs*0.75}" text-anchor="middle" dominant-baseline="central" font-size="${fs*0.95}" font-weight="800" fill="${dark ? '#e8edf2' : '#1f2328'}">${esc(t.name)}</text>
+    </g>`;
+  });
+  const line = dark ? "#3a4a5c" : "#c9d1d9", txt = dark ? "#9fb0c0" : "#57606a";
+  let diag = "";
+  [[R,R],[-R,R]].forEach(([x,y]) => diag += `<line x1="${-x}" y1="${y}" x2="${x}" y2="${-y}" stroke="${line}" stroke-width=".03" stroke-dasharray=".12 .12"/>`);
+  const ax = D.axes, af = opts.axisSize || .36;
+  const axes = `
+    <line x1="${-R}" y1="0" x2="${R}" y2="0" stroke="${line}" stroke-width=".05"/>
+    <line x1="0" y1="${-R}" x2="0" y2="${R}" stroke="${line}" stroke-width=".05"/>
+    <text x="${R-0.1}" y="-.18" text-anchor="end" font-size="${af}" font-weight="700" fill="${txt}">${esc(ax.x[1])} →</text>
+    <text x="${-R+0.1}" y="-.18" text-anchor="start" font-size="${af}" font-weight="700" fill="${txt}">← ${esc(ax.x[0])}</text>
+    <text x=".15" y="${-R+0.45}" font-size="${af}" font-weight="700" fill="${txt}">↑ ${esc(ax.y[1])}</text>
+    <text x=".15" y="${R-0.2}" font-size="${af}" font-weight="700" fill="${txt}">↓ ${esc(ax.y[0])}</text>`;
+  return `<svg viewBox="${-R} ${-R} ${2*R} ${2*R}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(D.boardTitle)} 좌표">
+    <rect x="${-R}" y="${-R}" width="${2*R}" height="${2*R}" rx=".4" fill="${dark ? '#16212c' : '#fafbfc'}"/>
+    ${wedges}${diag}${axes}${labels}<g id="pts">${opts.points || ""}</g></svg>`;
+}
+
+/* ---------- storage ---------- */
+let mem = {};
+const LS = {
+  get(){ try { return JSON.parse(localStorage.getItem("booth:" + ROOM) || "{}"); } catch(e){ return mem; } },
+  set(v){ mem = v; try { localStorage.setItem("booth:" + ROOM, JSON.stringify(v)); } catch(e){} }
+};
+let bc = null; try { bc = new BroadcastChannel("booth:" + ROOM); } catch(e){}
+const Store = {
+  remote: !!FIREBASE_URL,
+  base(){ return FIREBASE_URL.replace(/\/+$/, "") + "/" + ROOM + "/entries"; },
+  async add(entry){
+    if (this.remote){
+      const r = await fetch(this.base() + ".json", {method:"POST", body: JSON.stringify(entry)});
+      if (!r.ok) throw new Error("save " + r.status);
+      return;
+    }
+    const all = LS.get(); all["l" + Date.now() + Math.random().toString(36).slice(2,6)] = entry; LS.set(all);
+    if (bc) bc.postMessage("u");
+  },
+  async all(){
+    if (this.remote){
+      const r = await fetch(this.base() + ".json", {cache:"no-store"});
+      if (!r.ok) throw new Error("load " + r.status);
+      return (await r.json()) || {};
+    }
+    return LS.get();
+  },
+  async del(id){
+    if (this.remote){ await fetch(this.base() + "/" + encodeURIComponent(id) + ".json", {method:"DELETE"}); return; }
+    const all = LS.get(); delete all[id]; LS.set(all); if (bc) bc.postMessage("u");
+  },
+  async reset(){
+    if (this.remote){ await fetch(this.base() + ".json", {method:"DELETE"}); return; }
+    LS.set({}); if (bc) bc.postMessage("u");
+  }
+};
+
+/* ---------- name filter ---------- */
+const BAD = ["씨발","시발","ㅅㅂ","ㅆㅂ","병신","ㅂㅅ","개새","새끼","좆","존나","ㅈㄴ","미친","지랄","fuck","shit","bitch"];
+function cleanName(s){
+  s = (s || "").replace(/\s+/g, " ").trim().slice(0, 8);
+  const flat = s.toLowerCase().replace(/[^가-힣ㄱ-ㅎa-z]/g, "");
+  if (BAD.some(w => flat.includes(w))) return null;
+  return s;
+}
+
+/* =================== PARTICIPANT APP =================== */
+const st = { qi:0, ans:[], x:0, y:0, type:null, li:0, zi:0, done:false, sent:false, quizOrder:null };
+
+function show(id){
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
+  $("#" + id).classList.add("on");
+  window.scrollTo(0, 0);
+}
+
+function initApp(){
+  document.title = D.title;
+  $("#i-kicker").textContent = D.kicker;
+  $("#i-title").innerHTML = D.titleHTML;
+  $("#i-sub").textContent = D.subtitle;
+  $("#startBtn").onclick = () => { st.qi = 0; st.ans = []; renderQ(); show("s-q"); };
+  $("#qBack").onclick = () => {
+    if (st.qi === 0){ show("s-intro"); return; }
+    st.qi--; st.ans.pop(); renderQ();
+  };
+  $("#toLearn").onclick = () => { st.li = 0; renderLearn(); show("s-learn"); };
+  $("#lPrev").onclick = () => { if (st.li > 0){ st.li--; renderLearn(); } else show("s-res"); };
+  $("#lNext").onclick = () => {
+    const L = D.types[st.type].learn;
+    if (st.li < L.length - 1){ st.li++; renderLearn(); }
+    else if (st.done) show("s-done");
+    else if (st.zi > 0) show("s-quiz");
+    else startQuiz();
+  };
+  $("#zPeek").onclick = () => { st.li = 0; renderLearn(true); show("s-learn"); };
+  $("#dSend").onclick = sendName;
+  $("#dName").addEventListener("keydown", e => { if (e.key === "Enter") sendName(); });
+  $("#dAgain").onclick = () => { Object.assign(st, {qi:0, ans:[], x:0, y:0, type:null, li:0, zi:0, done:false, sent:false}); $("#dName").value=""; $("#dToast").textContent=""; $("#dSend").disabled=false; show("s-intro"); };
+}
+
+function renderQ(){
+  const Q = D.questions[st.qi];
+  $("#qProg").style.width = (st.qi / D.questions.length * 100) + "%";
+  $("#qNum").textContent = `Q${st.qi + 1} / ${D.questions.length}`;
+  $("#qText").textContent = Q.q;
+  $("#qBack").style.visibility = "visible";
+  const box = $("#qOpts"); box.innerHTML = "";
+  [Q.a, Q.b].forEach(o => {
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.innerHTML = `<span class="em">${o.e}</span><span>${esc(o.t)}</span>`;
+    b.onclick = () => {
+      if (box.dataset.lock) return; box.dataset.lock = 1;
+      b.classList.add("sel");
+      st.ans.push({axis: Q.axis, v: o.v});
+      setTimeout(() => { delete box.dataset.lock; next(); }, 260);
+    };
+    box.appendChild(b);
+  });
+}
+function next(){
+  st.qi++;
+  if (st.qi < D.questions.length){ renderQ(); return; }
+  st.x = st.ans.filter(a => a.axis === "x").reduce((s, a) => s + a.v, 0);
+  st.y = st.ans.filter(a => a.axis === "y").reduce((s, a) => s + a.v, 0);
+  if (Math.abs(st.x) === Math.abs(st.y)) { renderTie(); show("s-tb"); }
+  else { finishType(sectorOf(st.x, st.y)); }
+}
+function renderTie(){
+  const box = $("#tbOpts"); box.innerHTML = "";
+  tieCandidates(st.x, st.y).forEach(s => {
+    const t = D.types[s];
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.innerHTML = `<div class="head"><span class="badge sm" style="background:${t.color}">${esc(t.icon)}</span><strong>${esc(t.teaser)}</strong></div>`;
+    b.onclick = () => finishType(s);
+    box.appendChild(b);
+  });
+}
+function finishType(s){
+  st.type = s; st.zi = 0; st.done = false; st.sent = false;
+  const t = D.types[s];
+  [st.px, st.py] = placePoint(st.x, st.y, s);
+  $("#rBadge").textContent = t.icon; $("#rBadge").style.background = t.color;
+  $("#rNick").textContent = t.nick; $("#rNick").style.color = t.color;
+  $("#rName").textContent = t.name;
+  $("#rTag").textContent = t.tagline;
+  $("#rTraits").innerHTML = t.traits.map(x => `<span class="chip" style="background:${t.color}1f;color:${t.color}">#${esc(x)}</span>`).join("");
+  const me = `<g><circle cx="${st.px}" cy="${-st.py}" r=".32" fill="${t.color}" stroke="#fff" stroke-width=".1"/>
+    <text x="${st.px}" y="${-st.py - .55}" text-anchor="middle" font-size=".42" font-weight="800" fill="#1f2328">나</text></g>`;
+  $("#rCompass").innerHTML = compassSVG({highlight: s, points: me, labelSize:.4});
+  const xl = st.x > 0 ? D.axes.x[1] : D.axes.x[0], yl = st.y > 0 ? D.axes.y[1] : D.axes.y[0];
+  $("#rAxis").textContent = `${xl} ${Math.abs(st.x)}점 · ${yl} ${Math.abs(st.y)}점`;
+  show("s-res");
+}
+
+function renderLearn(peek){
+  const t = D.types[st.type], L = t.learn, c = L[st.li];
+  $("#lPg").textContent = `${t.name} 이야기 ${st.li + 1} / ${L.length}`;
+  $("#lH").textContent = c.h;
+  $("#lBody").innerHTML = c.body.map(p => `<p>${p}</p>`).join("") + (c.fact ? `<div class="fact">${c.fact}</div>` : "");
+  $("#lSrc").textContent = c.src ? "출처: " + c.src : "";
+  $("#lDots").innerHTML = L.map((_, i) => `<i class="${i === st.li ? "on" : ""}"></i>`).join("");
+  const last = st.li === L.length - 1;
+  const inQuiz = st.zi > 0 && !st.done;
+  $("#lNext").textContent = last ? (st.done ? "완료 화면으로" : inQuiz ? "퀴즈로 돌아가기" : "미션 퀴즈 시작!") : "다음";
+  $("#lPrev").textContent = st.li === 0 ? (inQuiz || st.done ? "이전" : "결과 보기") : "이전";
+  if (st.li === 0 && (inQuiz || st.done)) $("#lPrev").style.visibility = "hidden"; else $("#lPrev").style.visibility = "visible";
+}
+function startQuiz(){
+  st.zi = 0; renderQuiz(); show("s-quiz");
+}
+function renderQuiz(){
+  const t = D.types[st.type], Z = t.quiz[st.zi];
+  $("#zProg").style.width = (st.zi / t.quiz.length * 100) + "%";
+  $("#zNum").textContent = `미션 퀴즈 ${st.zi + 1} / ${t.quiz.length}`;
+  $("#zText").textContent = Z.q;
+  $("#zFb").textContent = ""; $("#zFb").className = "fb";
+  const box = $("#zOpts"); box.innerHTML = "";
+  const order = Z.o.map((_, i) => i).sort(() => Math.random() - .5);
+  order.forEach(i => {
+    const b = document.createElement("button");
+    b.className = "qopt"; b.textContent = Z.o[i];
+    b.onclick = () => {
+      if (box.dataset.lock) return;
+      if (i === Z.a){
+        box.dataset.lock = 1;
+        b.classList.add("right");
+        $("#zFb").textContent = "정답! " + (Z.why || ""); $("#zFb").className = "fb ok";
+        setTimeout(() => {
+          delete box.dataset.lock;
+          st.zi++;
+          if (st.zi < t.quiz.length) renderQuiz(); else finishQuiz();
+        }, 1300);
+      } else {
+        b.classList.add("wrong"); b.disabled = true;
+        $("#zFb").textContent = "아쉬워요! 힌트: " + Z.hint; $("#zFb").className = "fb no";
+      }
+    };
+    box.appendChild(b);
+  });
+}
+function finishQuiz(){
+  st.done = true;
+  const t = D.types[st.type];
+  $("#dStamp").style.borderColor = t.color; $("#dStamp").style.color = t.color;
+  $("#dTitle").textContent = `${t.nick} ${t.name}`;
+  const d = new Date();
+  $("#dTime").textContent = `완료 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  show("s-done");
+}
+async function sendName(){
+  if (st.sent) return;
+  const n = cleanName($("#dName").value);
+  const toast = $("#dToast");
+  if (n === null){ toast.textContent = "다른 이름으로 적어 주세요."; toast.style.color = "var(--bad)"; return; }
+  if (!n){ toast.textContent = "이름이나 별명을 적어 주세요."; toast.style.color = "var(--bad)"; return; }
+  $("#dSend").disabled = true; toast.textContent = "올리는 중…"; toast.style.color = "var(--ink-2)";
+  try {
+    await Store.add({n, t: st.type, x: st.px, y: st.py, ts: Date.now()});
+    st.sent = true;
+    toast.textContent = "보드에 올라갔어요! 큰 화면을 확인해 보세요."; toast.style.color = "var(--ok)";
+  } catch(e){
+    $("#dSend").disabled = false;
+    toast.textContent = "연결이 불안정해요. 다시 눌러 주세요."; toast.style.color = "var(--bad)";
+  }
+}
+
+/* =================== BOARD =================== */
+let lastIds = new Set(), entries = {}, deleting = false, firstLoad = true;
+function initBoard(){
+  document.body.classList.add("board");
+  document.title = D.boardTitle + " · 보드";
+  $("#bTitle").textContent = D.boardTitle;
+  $("#bSub").textContent = D.boardSub;
+  if (!Store.remote) $("#bMode").textContent = "※ 기기 내 저장 모드: 같은 기기·브라우저에서 참여한 결과만 보입니다. 여러 휴대폰을 연결하려면 FIREBASE_URL을 설정하세요.";
+  try {
+    const url = location.origin + location.pathname;
+    if (window.QRCode && location.protocol.startsWith("http")) new QRCode($("#qr"), {text: url, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M});
+    else $("#qr").innerHTML = '<div style="width:110px;height:110px;display:grid;place-items:center;font-size:12px;text-align:center;color:#57606a">배포 후<br>QR 표시</div>';
+  } catch(e){}
+  $("#gear").onclick = () => $("#adm").classList.toggle("on");
+  $("#admGo").onclick = () => {
+    if ($("#admPin").value === ADMIN_PIN){ $("#admLock").style.display = "none"; $("#admTools").style.display = "block"; deleting = true; document.body.classList.add("deleting"); }
+    else $("#admPin").value = "";
+  };
+  $("#admClose").onclick = () => { $("#adm").classList.remove("on"); deleting = false; document.body.classList.remove("deleting"); $("#admLock").style.display = "block"; $("#admTools").style.display = "none"; $("#admPin").value = ""; resetArm = false; $("#admReset").textContent = "전체 초기화"; };
+  let resetArm = false;
+  $("#admReset").onclick = async () => {
+    if (!resetArm){ resetArm = true; $("#admReset").textContent = "한 번 더 누르면 모두 삭제"; return; }
+    resetArm = false; $("#admReset").textContent = "전체 초기화";
+    await Store.reset(); load();
+  };
+  $("#bMain").addEventListener("click", async e => {
+    if (!deleting) return;
+    const g = e.target.closest(".pt"); if (!g) return;
+    await Store.del(g.dataset.id); load();
+  });
+  load();
+  setInterval(load, Store.remote ? 3000 : 1500);
+  if (bc) bc.onmessage = load;
+  window.addEventListener("storage", load);
+}
+async function load(){
+  try { entries = await Store.all(); } catch(e){ return; }
+  renderBoard();
+}
+function renderBoard(){
+  const list = Object.entries(entries).filter(([, v]) => v && D.types[v.t]).sort((a, b) => (a[1].ts || 0) - (b[1].ts || 0));
+  const N = list.length, labelFrom = Math.max(0, N - 60);
+  let pts = "";
+  list.forEach(([id, v], i) => {
+    const t = D.types[v.t], isNew = !firstLoad && !lastIds.has(id);
+    const x = Math.max(-5.7, Math.min(5.7, +v.x || 0)), y = Math.max(-5.7, Math.min(5.7, +v.y || 0));
+    pts += `<g class="pt${isNew ? " new" : ""}" data-id="${esc(id)}">
+      <circle cx="${x}" cy="${-y}" r=".13" fill="${t.color}" stroke="#0f1720" stroke-width=".03"/>
+      ${i >= labelFrom ? `<text x="${x}" y="${-y - .2}" text-anchor="middle" font-size=".2" font-weight="700" fill="#e8edf2">${esc(v.n)}</text>` : ""}
+    </g>`;
+  });
+  $("#bMain").innerHTML = compassSVG({dark: true, points: pts, labelR: 5.05, labelSize: .3, axisSize: .26});
+  lastIds = new Set(list.map(([id]) => id)); firstLoad = false;
+  $("#bTotal").textContent = N;
+  const counts = {}; SECTORS.forEach(s => counts[s] = 0); list.forEach(([, v]) => counts[v.t]++);
+  const max = Math.max(1, ...Object.values(counts));
+  $("#bLegend").innerHTML = SECTORS.map(s => {
+    const t = D.types[s];
+    return `<div class="lg"><span class="badge sm" style="background:${t.color}">${esc(t.icon)}</span>
+      <span style="width:110px">${esc(t.name)}</span>
+      <span class="bar"><i style="width:${counts[s] / max * 100}%;background:${t.color}"></i></span><span class="n">${counts[s]}</span></div>`;
+  }).join("");
+}
+
+if (new URLSearchParams(location.search).has("board")) initBoard(); else initApp();
+})();
+</script>
+</body>
+</html>
