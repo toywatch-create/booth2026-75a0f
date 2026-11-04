@@ -113,7 +113,15 @@ body.board{background:var(--mint-bg);overflow:hidden}
 body.board .app{display:none}
 .bwrap{display:none}
 body.board .bwrap{display:grid;grid-template-columns:auto minmax(0,1fr) 250px;gap:20px;height:100vh;padding:20px}
-body.board.nomap .bwrap{grid-template-columns:auto minmax(0,1fr)}
+body.board.nomap .bwrap{grid-template-columns:minmax(0,1fr) 380px;padding:10px;gap:14px}
+body.board.nomap .bmain{aspect-ratio:auto;width:100%;height:calc(100vh - 20px);padding:6px}
+body.board.nomap .legend{display:none}
+body.board.nomap .bside{justify-content:center}
+body.board.nomap .bside .head h1{font-size:30px}
+body.board.nomap .qrbox #qr img,body.board.nomap .qrbox #qr canvas{width:240px!important;height:240px!important}
+body.board.nomap .qrbox p{font-size:20px}
+body.board.nomap .bcount b{font-size:64px}
+.bside > .panel{flex:none}
 body.board.nomap .bmap{display:none}
 .panel{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:0 10px 30px rgba(20,165,140,.08);min-height:0}
 .bmain{display:flex;align-items:center;justify-content:center;padding:14px;aspect-ratio:1/1;height:calc(100vh - 40px)}
@@ -294,7 +302,7 @@ body.deleting .pt:hover circle{stroke:#e0605a;stroke-width:.1}
                   비워두면 이 기기 안에만 저장됩니다(보드도 같은 기기·브라우저에서만 보임).
    ADMIN_PIN    : 보드 화면의 '관리' 버튼 PIN (점 삭제, 전체 초기화)
    ===================================================================== */
-const FIREBASE_URL = "https://booth2026-75a0f-default-rtdb.asia-southeast1.firebasedatabase.app/";
+const FIREBASE_URL = "";
 const ADMIN_PIN = "0000";
 </script>
 <script>
@@ -360,14 +368,14 @@ function placePoint(x, y, type){
 
 /* ---------- compass SVG ---------- */
 function compassSVG(opts){
-  const R = 6;
+  const R = 6, SX = opts.sx || 1, X = v => v * SX;
   const P = i => [[R,0],[R,R],[0,R],[-R,R],[-R,0],[-R,-R],[0,-R],[R,-R]][((i % 8) + 8) % 8];
   let wedges = "", labels = "";
   SECTORS.forEach((s, k) => {
     const t = D.types[s], a = P(k), b = P(k + 1), hi = opts.highlight === s;
-    wedges += `<polygon points="0,0 ${a[0]},${-a[1]} ${b[0]},${-b[1]}" fill="${t.color}" fill-opacity="${hi ? .28 : .08}"/>`;
+    wedges += `<polygon points="0,0 ${X(a[0])},${-a[1]} ${X(b[0])},${-b[1]}" fill="${t.color}" fill-opacity="${hi ? .28 : .08}"/>`;
     const ang = (k * 45 + 22.5) * Math.PI / 180, lr = opts.labelR || 4.4;
-    const lx = Math.cos(ang) * lr, ly = -Math.sin(ang) * lr, sz = opts.iconSize || 1.15, fs = opts.labelSize || .4;
+    const lx = X(Math.cos(ang) * lr), ly = -Math.sin(ang) * lr, sz = opts.iconSize || 1.15, fs = opts.labelSize || .4;
     labels += `<g opacity="${opts.highlight && !hi ? .5 : 1}">
       ${iconAt(s, lx, ly - sz * .32, sz)}
       <text x="${lx}" y="${ly + sz * .5}" text-anchor="middle" dominant-baseline="central" font-size="${fs}" font-weight="800" fill="#16302b"
@@ -376,17 +384,17 @@ function compassSVG(opts){
   });
   const line = "#cfe3de", txt = "#5b716c";
   let diag = "";
-  [[R,R],[-R,R]].forEach(([x,y]) => diag += `<line x1="${-x}" y1="${y}" x2="${x}" y2="${-y}" stroke="${line}" stroke-width=".035" stroke-dasharray=".14 .14"/>`);
+  [[R,R],[-R,R]].forEach(([x,y]) => diag += `<line x1="${X(-x)}" y1="${y}" x2="${X(x)}" y2="${-y}" stroke="${line}" stroke-width=".035" stroke-dasharray=".14 .14"/>`);
   const ax = D.axes, af = opts.axisSize || .34;
   const axes = `
-    <line x1="${-R}" y1="0" x2="${R}" y2="0" stroke="#a9d8cc" stroke-width=".06"/>
+    <line x1="${X(-R)}" y1="0" x2="${X(R)}" y2="0" stroke="#a9d8cc" stroke-width=".06"/>
     <line x1="0" y1="${-R}" x2="0" y2="${R}" stroke="#a9d8cc" stroke-width=".06"/>
-    <text x="${R-0.15}" y="-.2" text-anchor="end" font-size="${af}" font-weight="800" fill="${txt}">${esc(ax.x[1])} →</text>
-    <text x="${-R+0.15}" y="-.2" text-anchor="start" font-size="${af}" font-weight="800" fill="${txt}">← ${esc(ax.x[0])}</text>
+    <text x="${X(R)-0.15}" y="-.2" text-anchor="end" font-size="${af}" font-weight="800" fill="${txt}">${esc(ax.x[1])} →</text>
+    <text x="${X(-R)+0.15}" y="-.2" text-anchor="start" font-size="${af}" font-weight="800" fill="${txt}">← ${esc(ax.x[0])}</text>
     <text x=".18" y="${-R+0.5}" font-size="${af}" font-weight="800" fill="${txt}">↑ ${esc(ax.y[1])}</text>
     <text x=".18" y="${R-0.25}" font-size="${af}" font-weight="800" fill="${txt}">↓ ${esc(ax.y[0])}</text>`;
-  return `<svg viewBox="${-R} ${-R} ${2*R} ${2*R}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(D.boardTitle)} 좌표">
-    <rect x="${-R}" y="${-R}" width="${2*R}" height="${2*R}" rx=".5" fill="#fff"/>
+  return `<svg viewBox="${X(-R)} ${-R} ${X(2*R)} ${2*R}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(D.boardTitle)} 좌표">
+    <rect x="${X(-R)}" y="${-R}" width="${X(2*R)}" height="${2*R}" rx=".5" fill="#fff"/>
     ${wedges}${diag}${axes}${labels}<g id="pts">${opts.points || ""}</g></svg>`;
 }
 
@@ -674,18 +682,19 @@ function renderBoard(){
   const sig = list.map(([id]) => id).join("|");
   if (sig === lastSig && !firstLoad) return;
   lastSig = sig;
+  const bm = $("#bMain"), SXB = D.map ? 1 : Math.max(1, Math.min(2.2, (bm.clientWidth - 12) / Math.max(1, bm.clientHeight - 12)));
   const N = list.length, labelFrom = Math.max(0, N - 60), fresh = new Set();
   let pts = "";
   list.forEach(([id, v], i) => {
     const t = D.types[v.t], isNew = !firstLoad && !lastIds.has(id);
     if (isNew) fresh.add(v.t);
-    const x = Math.max(-5.7, Math.min(5.7, +v.x || 0)), y = Math.max(-5.7, Math.min(5.7, +v.y || 0));
+    const x = Math.max(-5.7, Math.min(5.7, +v.x || 0)) * SXB, y = Math.max(-5.7, Math.min(5.7, +v.y || 0));
     pts += `<g class="pt${isNew ? " new" : ""}" data-id="${esc(id)}">
-      <circle cx="${x}" cy="${-y}" r=".14" fill="${t.color}" stroke="#fff" stroke-width=".05"/>
-      ${i >= labelFrom ? `<text x="${x}" y="${-y - .22}" text-anchor="middle" font-size=".21" font-weight="800" fill="#16302b" stroke="#fff" stroke-width=".07" paint-order="stroke">${esc(v.n)}</text>` : ""}
+      <circle cx="${x}" cy="${-y}" r="${D.map ? .14 : .17}" fill="${t.color}" stroke="#fff" stroke-width=".05"/>
+      ${i >= labelFrom ? `<text x="${x}" y="${-y - (D.map ? .22 : .26)}" text-anchor="middle" font-size="${D.map ? .21 : .26}" font-weight="800" fill="#16302b" stroke="#fff" stroke-width=".07" paint-order="stroke">${esc(v.n)}</text>` : ""}
     </g>`;
   });
-  $("#bMain").innerHTML = compassSVG({points: pts, labelR: 4.9, iconSize: .95, labelSize: .3, axisSize: .27});
+  $("#bMain").innerHTML = D.map ? compassSVG({points: pts, labelR: 4.9, iconSize: .95, labelSize: .3, axisSize: .27}) : compassSVG({points: pts, labelR: 4.7, iconSize: 1.3, labelSize: .42, axisSize: .34, sx: SXB});
   lastIds = new Set(list.map(([id]) => id)); firstLoad = false;
   $("#bTotal").textContent = N;
   const counts = {}; SECTORS.forEach(s => counts[s] = 0); list.forEach(([, v]) => counts[v.t]++);
@@ -698,6 +707,7 @@ function renderBoard(){
   }).join("");
 }
 
+addEventListener("resize", () => { if (document.body.classList.contains("board")) { lastSig = "~"; renderBoard(); } });
 if (new URLSearchParams(location.search).has("board")) initBoard(); else initApp();
 })();
 </script>
